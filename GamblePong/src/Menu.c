@@ -20,17 +20,24 @@ void UpdateAIPaddle(Rectangle *paddle, Vector2 ball, float speed);
 void ResetQUICKGame();
 void InitObstacles();
 
+void ResetMenu(void)
+{
+    menuSelection = 0;
+    settingsSelection = 0;
+    setUpSeclection = 0;
+    selectorSelection = 0;
+    TutorialState = 0;
+    customizationSelection = 0;
+}
 //                                                           -- TITLE SCREEN --
 void DrawTitleScreen(void)
 {
     BeginDrawing();
-    DrawRectangleRec(aiPaddleLeft, LIGHTGRAY);
-    DrawRectangleRec(aiPaddleRight, LIGHTGRAY);
-    DrawCircleV(bgBallPos, 5, WHITE);
     ClearBackground(bgColor);
     DrawText("Gamble Pong", SCREEN_WIDTH / 2 - MeasureText("Gamble Pong", 50) / 2, 100, 50, textColor);
     DrawText("Gamble Safe", 10, 10, 20, darkMode ? LIGHTGRAY : DARKGRAY);
     DrawText(TextFormat("Press H to turn AI %s", AIEnabled ? "OFF" : "ON"), SCREEN_WIDTH - MeasureText("Press H to turn AI OFF", 20) - 10, 10, 20, textColor);
+    DrawText("Press t for Tutorial", SCREEN_WIDTH / 2 - MeasureText("Press t for Tutorial", 20) / 2, 160, 20, textColor);
 
     Color playColor = (menuSelection == 0) ? textColor : GRAY;
     Color modesColor = (menuSelection == 1) ? textColor : GRAY;
@@ -95,20 +102,32 @@ void UpdateTitleScreen()
             PlaySound(soundManager.enterMenu);
         if (menuSelection == 0) {
             if (!AIEnabled) {
+                ResetScore();
                 ResetQUICKGame();
                 gameState = 11; // QUICK PLAY
             } else {
+                ResetScore();
+                ResetQUICKGame();
+                ResetMenu();
                 gameState = 14; // QUICK PLAY SELECTOR
             }
         }
-        else if (menuSelection == 1)
+        else if (menuSelection == 1){
+            ResetMenu();
             gameState = 7; // Modes Menu
-        else if (menuSelection == 2)
+            }
+        else if (menuSelection == 2){
+            ResetMenu();
             gameState = 12; // Customization Menu
-        else if (menuSelection == 3)
+            }
+        else if (menuSelection == 3){
+            ResetMenu();
             gameState = 5; // Settings Menu
-        else if (menuSelection == 4)
+        }
+        else if (menuSelection == 4){
+            ResetMenu();
             gameState = 13; // Credits
+        }
     }
     if (IsKeyPressed(KEY_C)){ // Controls Screen
         if (sfxOn)
@@ -124,6 +143,16 @@ void UpdateTitleScreen()
         if (sfxOn)
             PlaySound(soundManager.keyPress);
         AIEnabled = !AIEnabled;
+    }
+    if (IsKeyPressed(KEY_T)){ // Tutorial
+        if (sfxOn)
+            PlaySound(soundManager.keyPress);
+        ResetPaddle();
+        TutorialState = 0;
+        AIEnabled = true;
+        aiDifficulty = DIFFICULTY_EASY;
+        gameState = 15;
+
     }
 }
 // Post Game Menu
@@ -225,8 +254,8 @@ void DrawModesMenu(void)
 
     DrawText("MODES", SCREEN_WIDTH / 2 - MeasureText("MODES", 50) / 2, 50, 50, textColor);
     DrawText("SET-UP PLAY", SCREEN_WIDTH / 2 - MeasureText("SET-UP PLAY", 40) / 2 + ((menuSelection == 0) ? selectionBounceModes.offset : 0), 225, 40, setupMode);
-    DrawText("OBSTACLE MODE (not working)", SCREEN_WIDTH / 2 - MeasureText("OBSTACLE MODE (not working)", 40) / 2 + ((menuSelection == 1) ? selectionBounceModes.offset : 0), 300, 40, obstacleMode);
-    DrawText("CHAOS MODE (not working)", SCREEN_WIDTH / 2 - MeasureText("CHAOS MODE (not working)", 40) / 2 + ((menuSelection == 2) ? selectionBounceModes.offset : 0), 375, 40, chaosMode);
+    DrawText("OBSTACLE MODE", SCREEN_WIDTH / 2 - MeasureText("OBSTACLE MODE", 40) / 2 + ((menuSelection == 1) ? selectionBounceModes.offset : 0), 300, 40, obstacleMode);
+    DrawText("CHAOS MODE", SCREEN_WIDTH / 2 - MeasureText("CHAOS MODE", 40) / 2 + ((menuSelection == 2) ? selectionBounceModes.offset : 0), 375, 40, chaosMode);
 
     DrawText("Press Enter to Select", SCREEN_WIDTH / 2 - MeasureText("Press Enter to Select", 20) / 2, 550, 20, textColor);
     DrawText("Press M to return to Main Menu", SCREEN_WIDTH / 2 - MeasureText("Press M to return to Main Menu", 20) / 2, 575, 20, textColor);
@@ -255,14 +284,20 @@ void UpdateModesMenu(void)
     {
         if (sfxOn)
             PlaySound(soundManager.enterMenu);
-        if (menuSelection == 0)
+        if (menuSelection == 0){
+            ResetMenu();
+            ResetScore();
             gameState = 8; // SET-UP PLAY
+        }
         else if (menuSelection == 1) {
             gameState = 9; // OBSTACLE MODE 
+            ResetScore();
             InitObstacles();
         }
         else if (menuSelection == 2)
             gameState = 10; // CHAOS MODE
+            ResetScore();
+            InitChaosMode();
     }
 
     if (IsKeyPressed(KEY_M)) {
@@ -360,6 +395,7 @@ void UpdateSetupPlay(void)
         if (sfxOn) {
             PlaySound(soundManager.enterMenu);
         }
+        ResetScore();
         ResetGame();
     }
 }

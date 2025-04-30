@@ -35,6 +35,36 @@ int particleCount = 0;
 
 int numObstacles = 0;
 
+bool ObstacleMode = true;
+bool PortalMode = true;
+bool GravityFlip = true;
+bool ColorFlip = true;
+bool SpeedIncrease = true;
+
+float GravityFlipTimer = 0.0f;
+
+float colorChangeTimer = 0.0f;
+float colorChangeBackTimer = 0.0f;
+float colorChangeInterval = 1.0f;
+float chaosTimer = 0.0f;
+float chaosBoostTimer = 0.0f;
+float chaosSpeedIncrease = 2.0f;
+
+bool ballIsBoosted = false;
+bool boostAppliedThisCycle = false;
+float originalBallSpeedX = 0.0f;
+float originalBallSpeedY = 0.0f;
+
+// Store original colors
+Color BgColorStored;
+Color BallColorStored;
+Color playerOneStored;
+Color playerTwoStored;
+Color TrailColorStored;
+Color ObstacleColorStored;
+Color PortalColorStored;
+Color ExplosionColorStored;
+
 // Declare external functions
 void UpdateSelectionHighlight(SelectionHighlight *highlight);
 void StartSelectionBounce(SelectionHighlight *highlight);
@@ -42,48 +72,55 @@ void DrawExplosion(int x, int y, Color color);
 void DoubleOrNothingText(void);
 void DrawSpeedTrail(Vector2 ballPos, Vector2 ballVelocity, Color color);
 
+void ResetPaddle(void);
 void ResetBall(void);
 void clearParticles(void);
 
-// Reset Game State
-void ResetGame(void)
-{
+void PaddleOneMovement();
+void PaddleTwoMovement();
+void DrawPaddle();
+void DrawBall();
+void BallMovement();
+void BallCollision();
+void ScoringLogic();
+void WinCondition();
+void ResetScore();
+
+extern Color GetRandomColor(void);
+void InitColorMadness(void);
+void UpdateColorMadness(void);
+void InitBallSpeedChaos(void);
+void UpdateBallSpeedChaos(void);
+void UpdateChoasMde(void);
+void InitChaosMode(void);
+
+void ResetScore(void){
     player1Score = 0;
     player2Score = 0;
-    player1Y = SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2;
-    player2Y = SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2;
+    lastScorer = 0;
     currentSpeedMultiplier = 1.0f;
     ResetBall();
     clearParticles();
-    randomStyleChosen = false;
-
- 
-    gameState = 1;
 }
-// Reset Ball Position and Speed
-void ResetBall(void)
-{
-    ballX = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
-    ballY = SCREEN_HEIGHT / 2 - BALL_SIZE / 2;
-
-    // RESET PADDLE AFTER EVERY CONCEDED POINT
+void ResetPaddle(void){
     player1Y = SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2;
     player2Y = SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2;
-
-    ballSpeedX = (lastScorer == 1) ? baseSpeed : -baseSpeed;
-    ballSpeedY = 0;
-
-    ballSpeedX *= currentSpeedMultiplier;
-
 }
-void UpdateGame(void)
-{
+void PaddleOneMovement(void){
     // Player One Controls
     if (IsKeyDown(KEY_W) && player1Y > 0)
         player1Y -= PADDLE_SPEED;
     if (IsKeyDown(KEY_S) && player1Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
         player1Y += PADDLE_SPEED;
-        // AI / Player Two Controls
+}
+void PaddleTwoMovement(void){
+    // Player Two Controls
+    if (IsKeyDown(KEY_UP) && player2Y > 0)
+            player2Y -= PADDLE_SPEED;
+    if (IsKeyDown(KEY_DOWN) && player2Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
+            player2Y += PADDLE_SPEED;
+}
+void AICheck (void){
     if (AIEnabled)
     {
     SetAIDifficulty(aiDifficulty);
@@ -91,13 +128,11 @@ void UpdateGame(void)
     }
     else
     {
-        // Player Two Controled Controls
-        if (IsKeyDown(KEY_UP) && player2Y > 0)
-            player2Y -= PADDLE_SPEED;
-        if (IsKeyDown(KEY_DOWN) && player2Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
-            player2Y += PADDLE_SPEED;
+    PaddleTwoMovement();
     }
-
+}
+void BallMovement(void)
+{
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
@@ -110,6 +145,8 @@ void UpdateGame(void)
         ballSpeedY = MAX_BALLSPEED;
     if (ballSpeedY < -MAX_BALLSPEED)
         ballSpeedY = -MAX_BALLSPEED;
+}
+void BallCollision(){
     // Ball Collision with Walls
     if (ballY <= 0 || ballY >= SCREEN_HEIGHT - BALL_SIZE)
         ballSpeedY = -ballSpeedY;
@@ -139,46 +176,95 @@ void UpdateGame(void)
         if (sfxOn)
             PlaySound(soundManager.playerTwoHit);
     }
-
-    // Scoring Logic
-    if (ballX <= 0 || ballX >= SCREEN_WIDTH - BALL_SIZE)
+}
+void ScoringLogic (void)
+{
+    // Ball Out of Bounds
+    if (ballX < 0)
     {
-        if (ballX <= 0) // Player Two
-        {
-            player2Score++;
-            lastScorer = 2;
-        }
-        else // Player One
-        {
-            player1Score++;
-            lastScorer = 1;
-        }
-
+        player2Score++;
+        lastScorer = 2;
         currentSpeedMultiplier *= (gameState == 4) ? 1.30f : speedIncrement;
         ResetBall();
+        if (sfxOn)
+            PlaySound(soundManager.scoredPoint);
     }
-
+    else if (ballX > SCREEN_WIDTH)
+    {
+        player1Score++;
+        lastScorer = 1;
+        currentSpeedMultiplier *= (gameState == 4) ? 1.30f : speedIncrement;
+        ResetBall();
+        if (sfxOn)
+            PlaySound(soundManager.scoredPoint);
+    }
+}
+void WinCondition(void)
+{
     // Check Win Condition
     if (gameState == 1 && (player1Score >= 10 || player2Score >= 10)) // Standard Game Mode
         gameState = (player1Score >= 10) ? 2 : 3;
     else if (gameState == 4 && (player1Score >= 20 || player2Score >= 20)) // Double or Nothing Mode
         gameState = (player1Score >= 20) ? 2 : 3;;
+}
+// Reset Game State
+void ResetGame(void)
+{
+    player1Score = 0;
+    player2Score = 0;
+    ResetPaddle();
+    currentSpeedMultiplier = 1.0f;
+    ResetBall();
+    clearParticles();
+    randomStyleChosen = false;
 
+    gameState = 1;
+}
+// Reset Ball Position and Speed
+void ResetBall(void)
+{
+    ballX = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
+    ballY = SCREEN_HEIGHT / 2 - BALL_SIZE / 2;
 
-    // Update explosion particles
-    for (int i = 0; i < particleCount; i++) {
-        particles[i].lifespan -= GetFrameTime(); // Decrease lifespan over time
-        if (particles[i].lifespan <= 0) {
-            // Remove particle by shifting remaining particles
-            for (int j = i; j < particleCount - 1; j++) {
-                particles[j] = particles[j + 1];
-            }
-            particleCount--;
-            i--; // Adjust index to account for removed particle
-        }
-    }
+    // RESET PADDLE AFTER EVERY CONCEDED POINT
+    ResetPaddle();
+
+    ballSpeedX = (lastScorer == 1) ? baseSpeed : -baseSpeed;
+    ballSpeedY = 0;
+
+    ballSpeedX *= currentSpeedMultiplier;
+
+}
+void UpdateGame(void)
+{
+    PaddleOneMovement();
+    AICheck();
+    BallMovement();
+    BallCollision();
+    ScoringLogic();
+    WinCondition();
+    UpdateExplosionParticles();
 }
 // Render/Draw Game Screen
+// Draw Paddle
+void DrawPaddle(void)
+{
+    DrawRectangle(0, (int)player1Y, PADDLE_WIDTH, PADDLE_HEIGHT, paddle1Color);
+    DrawRectangle(SCREEN_WIDTH - PADDLE_WIDTH, (int)player2Y, PADDLE_WIDTH, PADDLE_HEIGHT, paddle2Color);
+}
+void DrawBall(void)
+{
+    switch (BallType)
+    {
+    case 0:
+        DrawRectangle((int)ballX, (int)ballY, BALL_SIZE, BALL_SIZE, ballColor);
+        break;
+    case 1:
+        DrawCircle((int)ballX, (int)ballY, BALL_SIZE / 2, ballColor);
+        break;
+    }
+
+}
 void DrawGameScreen(void)
 {
     paddle1Color = playerOne;
@@ -187,9 +273,8 @@ void DrawGameScreen(void)
     BeginDrawing();
     ClearBackground(bgColor);
 
-    DrawRectangle(0, (int)player1Y, PADDLE_WIDTH, PADDLE_HEIGHT, paddle1Color);
-    DrawRectangle(SCREEN_WIDTH - PADDLE_WIDTH, (int)player2Y, PADDLE_WIDTH, PADDLE_HEIGHT, paddle2Color);
-    DrawRectangle((int)ballX, (int)ballY, BALL_SIZE, BALL_SIZE, ballColor);
+    DrawPaddle();
+    DrawBall();
 
     DrawText(TextFormat("Player 1: %d", player1Score), SCREEN_WIDTH / 4 - 60, 20, 30, playerOne);
     DrawText(TextFormat("Player 2: %d", player2Score), SCREEN_WIDTH * 3 / 4 - 60, 20, 30, playerTwo);
@@ -210,8 +295,6 @@ void DrawGameScreen(void)
     {
         DoubleOrNothingText(); // Bounce Text
     }
-
-    DrawRectangle((int)ballX, (int)ballY, BALL_SIZE, BALL_SIZE, ballColor);
     
     if (paused)
     {
@@ -228,8 +311,7 @@ void ResetQUICKGame(void)
 {
     player1Score = 0;
     player2Score = 0;
-    player1Y = SCREEN_HEIGHT / 2 - PADDLE_HEIGHTQUICK / 2;
-    player2Y = SCREEN_HEIGHT / 2 - PADDLE_HEIGHTQUICK / 2;
+    ResetPaddle();
     currentSpeedMultiplier = 1.0f;
     ResetQUICKBall();
     clearParticles();
@@ -241,7 +323,6 @@ void ResetQUICKBall(void)
 {
     ballX = SCREEN_WIDTH / 2 - BALL_SIZEQUICK / 2;
     ballY = SCREEN_HEIGHT / 2 - BALL_SIZEQUICK / 2;
-
 
     ballSpeedX = (lastScorer == 1) ? baseSpeedQUICK : -baseSpeedQUICK;
     ballSpeedY = 0;
@@ -258,9 +339,8 @@ void DrawQuickPlay(void)
     BeginDrawing();
     ClearBackground(bgColor);
 
-    DrawRectangle(0, (int)player1Y, PADDLE_WIDTH, PADDLE_HEIGHTQUICK, paddle1Color);
-    DrawRectangle(SCREEN_WIDTH - PADDLE_WIDTH, (int)player2Y, PADDLE_WIDTH, PADDLE_HEIGHTQUICK, paddle2Color);
-    DrawRectangle((int)ballX, (int)ballY, BALL_SIZEQUICK, BALL_SIZEQUICK, ballColor);
+    DrawBall();
+    DrawPaddle();
 
     DrawText(TextFormat("Player 1: %d", player1Score), SCREEN_WIDTH / 4 - 60, 20, 30, playerOne);
     DrawText(TextFormat("Player 2: %d", player2Score), SCREEN_WIDTH * 3 / 4 - 60, 20, 30, playerTwo);
@@ -477,5 +557,206 @@ void DrawObstacles(void) {
     for (int i = 0; i < numObstacles; i++) {
         DrawRectangle(obstacles[i].position.x, obstacles[i].position.y,
                       obstacles[i].size.x, obstacles[i].size.y, obstacleColor);
+    }
+}
+//                                                                                       - CHAOS MODE -
+void UpdateChoasMde(void) {
+    if (PortalMode) {
+        UpdatePortals();
+    }
+    if (ObstacleMode) {
+        UpdateObstacles();
+    }
+    if (GravityFlip) {
+        UpdateGravityFlip();
+    }
+    if (ColorFlip) {
+        UpdateColorMadness();
+    }
+    if (SpeedIncrease) {
+        UpdateBallSpeedChaos();
+    }
+}
+void InitChaosMode(){
+    if (PortalMode) {
+        InitPortals();
+    }
+    if (ObstacleMode) {
+        InitObstacles();
+    }
+    if (GravityFlip) {
+        InitGravityFlip();
+    }
+    if (ColorFlip) {
+        InitColorMadness();
+    }
+    if (SpeedIncrease) {
+        InitBallSpeedChaos();
+    }
+}
+void InitPortals() {
+    portalAmount = GetRandomValue(1, numPortals); // Random number of portals
+
+    for (int i = 0; i < portalAmount; i++) {
+        // Set the entrance (position1) and exit (position2) of each portal
+        portals[i].size = (Vector2){8, 23}; // or whatever size looks good
+
+        portals[i].position1.x = GetRandomValue(SCREEN_WIDTH / 4, SCREEN_WIDTH * 3 / 4);
+        portals[i].position1.y = GetRandomValue(SCREEN_HEIGHT / 4, SCREEN_HEIGHT * 3 / 4);
+
+        portals[i].position2.x = GetRandomValue(SCREEN_WIDTH / 4, SCREEN_WIDTH * 3 / 4);
+        portals[i].position2.y = GetRandomValue(SCREEN_HEIGHT / 4, SCREEN_HEIGHT * 3 / 4);
+
+        portals[i].color = portalColor;
+
+        portals[i].isActive = true; // Set the portal to be active
+    }
+}
+float dist(Vector2 a, Vector2 b) {
+    return sqrtf((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
+}
+void UpdatePortals(void) {
+    if (portalCooldown > 0.0f) {
+        portalCooldown -= GetFrameTime();
+        return;
+    }
+    for (int i = 0; i < numPortals; i++) {
+        if (!portals[i].isActive) continue;
+
+        Vector2 ballPos = (Vector2){ballX, ballY};
+        float radius = ((portals[i].size.x) * 0.4f) + portals[i].size.y;
+
+        if (dist(ballPos, portals[i].position1) <= radius) {
+            ballSpeedY = GetRandomValue(0, 1) == 0 ? -ballSpeedY : ballSpeedY;
+
+            ballX = portals[i].position2.x;
+            ballY = portals[i].position2.y;
+            portalCooldown = 1.0f;
+            break;
+        }
+
+        if (dist(ballPos, portals[i].position2) <= radius) {
+            ballSpeedY = GetRandomValue(0, 1) == 0 ? -ballSpeedY : ballSpeedY;
+
+            ballX = portals[i].position1.x;
+            ballY = portals[i].position1.y;
+            portalCooldown = 1.0f;
+            break;
+        }
+    }
+}
+void DrawPortals(void) {
+    for (int i = 0; i < numPortals; i++) {
+        if (!portals[i].isActive) continue;
+        portals[i].color = portalColor;
+        DrawEllipse(portals[i].position1.x, portals[i].position1.y, portals[i].size.x, portals[i].size.y, portals[i].color);
+        DrawEllipse(portals[i].position2.x, portals[i].position2.y, portals[i].size.x, portals[i].size.y, portals[i].color);
+    }
+}
+void InitGravityFlip(void) {
+    float GravityFlipTimer = 0.0f;
+}
+void UpdateGravityFlip(void) {
+    GravityFlipTimer += GetFrameTime();
+    if (GravityFlipTimer > 5.0f) {
+        if (GetRandomValue(0, 100) < 25) {
+            // Flip gravity
+            ballSpeedY = -ballSpeedY;
+            ballSpeedX = -ballSpeedX;
+        }
+        GravityFlipTimer = 0.0f;
+    }
+}
+void DrawGravityFlip(void) {
+
+    // Draw a visual effect for gravity flip
+}
+void InitColorMadness(void) {
+    // Store original colors
+    BgColorStored = bgColor;
+    BallColorStored = ballColor;
+    playerOneStored = playerOne;
+    playerTwoStored = playerTwo;
+    TrailColorStored = trailColor;
+    ObstacleColorStored = obstacleColor;
+    PortalColorStored = portalColor;
+    ExplosionColorStored = explosionColor;
+
+    // Set a timer for color changes
+    float colorChangeTimer = 0.0f;
+    float colorChangeBackTimer = 0.0f;
+    // Initialize color madness effect Start by storing the original colors when entering game
+}
+void UpdateColorMadness(void) { // Timer and randomiser decides if colors should be changed
+//   Randomly change colors of ball, paddles, and background then start timer that changes them back again
+    colorChangeTimer += GetFrameTime();
+    if (colorChangeTimer > 5.0f) {
+        if (GetRandomValue(0, 100) < 50) {
+        bgColor        = GetRandomColor();
+        ballColor      = GetRandomColor();
+        playerOne      = GetRandomColor();
+        playerTwo      = GetRandomColor();
+        trailColor     = GetRandomColor();
+        obstacleColor  = GetRandomColor();
+        portalColor    = GetRandomColor();
+        explosionColor = GetRandomColor();
+        colorChangeBackTimer += GetFrameTime();
+        }
+    }
+    // Randomly change colors of ball, paddles, background, obstacles, and portals
+    // Use a timer to revert back to original colors
+    if (colorChangeBackTimer > 5.0f) {
+        RevertColors();
+
+        colorChangeBackTimer = 0.0f; // Reset the timer to reset the timer
+        colorChangeTimer = 0.0f; // Reset the timer
+    }
+}
+void RevertColors (void){
+    bgColor        = BgColorStored;
+    ballColor      = BallColorStored;
+    playerOne      = playerOneStored;
+    playerTwo      = playerTwoStored;
+    trailColor     = TrailColorStored;
+    obstacleColor  = ObstacleColorStored;
+    portalColor    = PortalColorStored;
+    explosionColor = ExplosionColorStored;
+}
+void InitBallSpeedChaos(void) {
+    chaosTimer = 0.0f;
+    chaosBoostTimer = 0.0f;
+    ballIsBoosted = false;
+    boostAppliedThisCycle = false;
+}
+void UpdateBallSpeedChaos(void) {
+    chaosTimer += GetFrameTime();
+
+    // Wait 5 seconds
+    if (!ballIsBoosted && !boostAppliedThisCycle && chaosTimer > 5.0f) {
+        if (GetRandomValue(0, 100) < 50) {
+            originalBallSpeedX = ballSpeedX;
+            originalBallSpeedY = ballSpeedY;
+            ballSpeedX *= chaosSpeedIncrease;
+            ballSpeedY *= chaosSpeedIncrease;
+            ballIsBoosted = true;
+            boostAppliedThisCycle = true;
+            chaosBoostTimer = 0.0f;
+        } else {
+            // Skip boost this cycle
+            chaosTimer = 0.0f;
+            boostAppliedThisCycle = false;
+        }
+    }
+
+    // If boosted, count 3 seconds then revert
+    if (ballIsBoosted) {
+        chaosBoostTimer += GetFrameTime();
+        if (chaosBoostTimer > 3.0f) {
+            ballSpeedX = originalBallSpeedX;
+            ballSpeedY = originalBallSpeedY;
+            ballIsBoosted = false;
+            boostAppliedThisCycle = false;
+            chaosTimer = 0.0f;
+        }
     }
 }

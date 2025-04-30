@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "globals.h"
 #include "SoundManager.h"
+#include "GameLogic.h"
 
 // GAME Constants
 #define SCREEN_WIDTH 800
@@ -11,10 +12,9 @@
 #define PADDLE_WIDTH 10
 #define MAX_PARTICLES 100
 #define MAX_OBSTACLES 15
-
+#define MAX_PORTALS 10
 
 extern SoundManager soundManager;
-
 // Game Variables
 
 typedef struct Paddle {
@@ -78,9 +78,26 @@ typedef struct {
 } Obstacle;
 Obstacle obstacles[MAX_OBSTACLES];
 extern int numObstacles;
-
 extern int OBSTACLEamount;
 
+// CHAOSE MODE
+// Portals
+typedef struct Portal {
+    Vector2 position1;
+    Vector2 position2;
+    Vector2 size;
+    Color color;
+    bool isActive;
+} Portal;
+#define MAX_PORTALS 10
+extern Portal portals[MAX_PORTALS];
+extern float portalCooldown;
+extern int numPortals;
+extern int portalAmount;
+extern float chaosSpeedIncrease;
+
+// Gravity Flip
+extern float GravityFlipTimer;
 // AI and Difficulty
 extern bool AIEnabled;
 extern float aiSpeed;
@@ -91,6 +108,7 @@ extern int hitIndex;
 extern bool randomStyleChosen;
 extern const char *difficultyLevels[];
 extern const char *aiPlaystyleNames[];
+extern int BallType;
 
 // Define AIDifficulty enum
 typedef enum {
@@ -138,6 +156,10 @@ extern bool darkMode;
 extern bool trailEffectOn;
 extern bool explosionEffectOn;
 extern bool backgroundEffectOn;
+extern bool GravityFlip;
+extern bool ColorFlip;
+extern bool SpeedIncrease;
+extern float chaosSpeedIncrease;
 
 // CUSTOMISED MENU
 extern int customizationSelection;
@@ -153,6 +175,7 @@ extern int bgColorIndex;
 extern int textColorIndex;
 extern int ballColorIndex;
 extern int obstacleColorIndex;
+extern int portalColorIndex;
 extern int trailColorIndex;
 extern int explosionColorIndex;
 
@@ -168,6 +191,7 @@ extern Color headingsColor;
 extern Color obstacleColor;
 extern Color trailColor;
 extern Color explosionColor;
+extern Color portalColor;
 
 // Theme struct
 
@@ -181,6 +205,7 @@ typedef struct {
     int trailColorIndex;
     int explosionColorIndex;
     int obstacleColorIndex;
+    int portalColorIndex;
 } Theme;
 extern Theme themes[];
 

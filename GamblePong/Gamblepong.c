@@ -9,6 +9,7 @@
 #include "include/Custom.h"
 #include "include/Menu.h"
 #include "include/Animations.h"
+#include "include/Tutorial.h"
 
 
 void InitGame();
@@ -27,6 +28,7 @@ void InitGame() {
     textColor = availableColors[textColorIndex];
 
     obstacleColor = availableColors[obstacleColorIndex];
+    portalColor = availableColors[portalColorIndex];
     trailColor = availableColors[trailColorIndex];
     explosionColor = availableColors[explosionColorIndex];
 
@@ -57,6 +59,8 @@ int main(void)
         {
             gameState = 0;
             paused = false;
+            RevertColors();
+            ResetMenu();
         }
         // Game States
 
@@ -65,6 +69,8 @@ int main(void)
         case 0:
             UpdateTitleScreen(); // TITLE SCREEN
             DrawTitleScreen(); // TITLE SCREEN
+            MainMenuAIGame();
+            DrawAIGame();
             break;
         case 1:
             if (!paused)
@@ -119,8 +125,15 @@ int main(void)
             DrawObstacles();
             break;
         case 10:
-            // DrawChaosMode();
-            // UpdateChaosMode();
+            if (!paused) {
+                UpdateGame(); // CHAOS MODE
+                UpdateChoasMde();
+            }
+            DrawGameScreen();
+            DrawPortals();
+            DrawObstacles();
+            DrawGravityFlip();
+
             break;
         case 11:
             if (!paused)
@@ -136,6 +149,10 @@ int main(void)
             break;
         case 14: // QuickPlaySelector
             quickPlaySelector();
+            break;
+        case 15: // TUTORIAL
+            UpdateTutorial();
+            DrawTutorial();
             break;
         }
     }

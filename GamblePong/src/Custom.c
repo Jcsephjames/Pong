@@ -20,6 +20,7 @@ extern int bgColorIndex;
 extern int textColorIndex;
 extern int ballColorIndex;
 extern int obstacleColorIndex;
+extern int portalColorIndex;
 extern int trailColorIndex;
 extern int explosionColorIndex;
 
@@ -32,9 +33,14 @@ extern Color ballColor;
 extern Color textColor;
 extern Color headingsColor;
 extern Color obstacleColor;
+extern Color portalColor;
 extern Color trailColor;
 extern Color explosionColor;
 extern Theme themes[];
+
+Color GetRandomColor(void) {
+    return (Color){ GetRandomValue(0, 255), GetRandomValue(0, 255), GetRandomValue(0, 255), 255 };
+}
 
 void DrawCustomizationMenu(void)
 {
@@ -43,7 +49,7 @@ void DrawCustomizationMenu(void)
 
     // Highlighted Selection
     Color selectionColor = textColor;
-    Color nonSelectionColor = GRAY;
+    Color nonSelectionColor = GRAY; 
 
     DrawText("CUSTOMIZATION", SCREEN_WIDTH / 2 - MeasureText("CUSTOMIZATION", 50) / 2, 20, 50, textColor);
 
@@ -164,6 +170,9 @@ void DrawCustomizationMenu(void)
     labelColor = (customizationSelection == 7) ? selectionColor : nonSelectionColor;
     DrawText(TextFormat("Obstacle Color: %s", colorNames[obstacleColorIndex]), SCREEN_WIDTH / 2 + 10 + ((customizationSelection == 7) ? selectionBounceCustomization.offset : 0), 375, 25, labelColor);
 
+    labelColor = (customizationSelection == 8) ? selectionColor : nonSelectionColor;
+    DrawText(TextFormat("Portal Color: %s", colorNames[portalColorIndex]), SCREEN_WIDTH / 2 + 10 + ((customizationSelection == 8) ? selectionBounceCustomization.offset : 0), 405, 25, labelColor);
+
 
     DrawText("Press M to return to Main Menu", SCREEN_WIDTH / 2 - 150, 575, 20, textColor);
 
@@ -176,7 +185,7 @@ void DrawCustomizationMenu(void)
 void UpdateCustomizationMenu(void)
 {
     UpdateSelectionHighlight(&selectionBounceCustomization);
-    const int customizationOptions = 8;
+    const int customizationOptions = 9;
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
         customizationSelection = (customizationSelection + 1) % customizationOptions;
         StartSelectionBounce(&selectionBounceCustomization);
@@ -232,6 +241,10 @@ void UpdateCustomizationMenu(void)
             if (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) obstacleColorIndex = (obstacleColorIndex - 1 + numColors) % numColors;
             if (IsKeyPressed(KEY_RIGHT) || (IsKeyPressed(KEY_D))) obstacleColorIndex = (obstacleColorIndex + 1) % numColors;
         break;
+        case 8: // Portal Color
+            if (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) portalColorIndex = (portalColorIndex - 1 + numColors) % numColors;
+            if (IsKeyPressed(KEY_RIGHT) || (IsKeyPressed(KEY_D))) portalColorIndex = (portalColorIndex + 1) % numColors;
+        break;
     }
     playerOne = availableColors[playerOneIndex];
     playerTwo = availableColors[playerTwoIndex];
@@ -241,6 +254,7 @@ void UpdateCustomizationMenu(void)
     textColor = availableColors[textColorIndex];
     explosionColor = availableColors[explosionColorIndex];
     obstacleColor = availableColors[obstacleColorIndex];
+    portalColor = availableColors[portalColorIndex];
 }
 //                                  -- Themes
 void ApplyTheme(int index) {
@@ -255,4 +269,5 @@ void ApplyTheme(int index) {
     trailColorIndex = selectedTheme.trailColorIndex;
     explosionColorIndex = selectedTheme.explosionColorIndex;
     obstacleColorIndex = selectedTheme.obstacleColorIndex;
+    portalColorIndex = selectedTheme.portalColorIndex;
 }

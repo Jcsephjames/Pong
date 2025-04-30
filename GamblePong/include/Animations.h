@@ -8,6 +8,7 @@ void StartSelectionBounce(SelectionHighlight *highlight);
 void UpdateAIPaddle(Rectangle *paddle, Vector2 ball, float speed);
 void clearParticles(void);
 void DrawExplosion(int x, int y, Color color);
+void UpdateExplosionParticles(void);
 void DoubleOrNothingText(void);
 void DrawSpeedTrail(Vector2 ballPos, Vector2 ballVelocity, Color trailColor);
 

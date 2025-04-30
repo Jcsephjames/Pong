@@ -11,6 +11,7 @@ void StartSelectionBounce(SelectionHighlight *highlight);
 void DrawCustomizationMenu(void);
 void UpdateCustomizationMenu(void);
 void ApplyTheme(int themeIndex);
+Color GetRandomColor(void);
 
 
 #endif // CUSTOM_H

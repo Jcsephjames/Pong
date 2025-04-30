@@ -18,6 +18,9 @@ extern bool showFPS, darkMode, musicOn, sfxOn, trailEffectOn, explosionEffectOn,
 void UpdateSelectionHighlight(SelectionHighlight *highlight);
 void StartSelectionBounce(SelectionHighlight *highlight);
 
+extern void ResetBall();
+extern void DrawExplosion(int x, int y, Color color);
+extern void DrawSpeedTrail(Vector2 ballPos, Vector2 ballVelocity, Color color);
 
 void SetAIDifficulty(AIDifficulty aiDifficulty)
 {
@@ -103,7 +106,7 @@ void AI_MixedPlaystyle()
     else if (targetY > biasedCenter + reactionBuffer && player2Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
         player2Y += aiSpeed;
 
-    DrawCircle(SCREEN_WIDTH - 20, aiCenter + edgeBias, 5, RED); // right near paddle2
+    // DrawCircle(SCREEN_WIDTH - 20, aiCenter + edgeBias, 5, RED); // right near paddle2
 }
 // Defensive playstyle AI logic
 void AI_DefensivePlaystyle()
@@ -116,7 +119,7 @@ void AI_DefensivePlaystyle()
     else if (targetY > aiCenter + reactionBuffer && player2Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
         player2Y += aiSpeed;
 
-    DrawCircle(SCREEN_WIDTH - 20, aiCenter, 5, RED);
+    // DrawCircle(SCREEN_WIDTH - 20, aiCenter, 5, RED);
 }
 
 // Offensive playstyle AI logic
@@ -142,7 +145,7 @@ void AI_OffensivePlaystyle()
     else if (targetY > biasedCenter + reactionBuffer && player2Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
         player2Y += aiSpeed;
 
-    DrawCircle(SCREEN_WIDTH - 20, aiCenter + edgeBias, 5, RED); // right near paddle2
+    // DrawCircle(SCREEN_WIDTH - 20, aiCenter + edgeBias, 5, RED); // right near paddle2
 
 }
 void AI_TrickyPlaystyle(void)
@@ -206,4 +209,90 @@ void AI_AdaptivePlaystyle(void)
     // Clamp paddle
     if (player2Y < 0) player2Y = 0;
     if (player2Y > SCREEN_HEIGHT - PADDLE_HEIGHT) player2Y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+}
+
+
+
+void MainMenuPlayer1AI(void){
+    float target1Y = ballY + offset;
+    float aiCenter = player1Y + PADDLE_HEIGHT / 2;
+
+    if (target1Y < aiCenter - reactionBuffer && player1Y > 0)
+        player1Y -= aiSpeed;
+    else if (target1Y > aiCenter + reactionBuffer && player1Y < SCREEN_HEIGHT - PADDLE_HEIGHT)
+        player1Y += aiSpeed;
+}
+
+
+void MainMenuAIGame(void)
+{
+    MainMenuPlayer1AI();
+    SetAIDifficulty(aiDifficulty);
+    UpdateAIPlaystyle(aiPlaystyle);
+
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    // Ball Collision with Walls
+    if (ballY <= 0 || ballY >= SCREEN_HEIGHT - BALL_SIZE)
+        ballSpeedY = -ballSpeedY;
+
+    // Collision with Player One Paddle
+    if (ballX <= PADDLE_WIDTH && ballY + BALL_SIZE >= player1Y && ballY <= player1Y + PADDLE_HEIGHT)
+    {
+        ballSpeedX = -ballSpeedX;
+        float hitPosition = (ballY + BALL_SIZE / 2) - (player1Y + PADDLE_HEIGHT / 2);
+        ballSpeedY = hitPosition * 0.1f;
+        if (explosionEffectOn)
+            DrawExplosion((int)ballX, (int)ballY, playerOne);
+    }
+
+    // Collision with Player Two Paddle
+    if (ballX >= SCREEN_WIDTH - PADDLE_WIDTH - BALL_SIZE && ballY + BALL_SIZE >= player2Y && ballY <= player2Y + PADDLE_HEIGHT)
+    {
+        ballSpeedX = -ballSpeedX;
+        float hitPosition = (ballY + BALL_SIZE / 2) - (player2Y + PADDLE_HEIGHT / 2);
+        ballSpeedY = hitPosition * 0.1f;
+        if (explosionEffectOn)
+            DrawExplosion((int)ballX, (int)ballY, playerTwo);
+    }
+
+    // Scoring Logic
+    if (ballX <= 0 || ballX >= SCREEN_WIDTH - BALL_SIZE)
+    {
+        ResetBall();
+    }
+
+    // Update explosion particles
+    for (int i = 0; i < particleCount; i++) {
+        particles[i].lifespan -= GetFrameTime(); // Decrease lifespan over time
+        if (particles[i].lifespan <= 0) {
+            // Remove particle by shifting remaining particles
+            for (int j = i; j < particleCount - 1; j++) {
+                particles[j] = particles[j + 1];
+            }
+            particleCount--;
+            i--; // Adjust index to account for removed particle
+        }
+    }
+}
+void DrawAIGame(void)
+{
+    paddle1Color = playerOne;
+    paddle2Color = playerTwo;
+
+    DrawRectangle(0, (int)player1Y, PADDLE_WIDTH, PADDLE_HEIGHT, paddle1Color);
+    DrawRectangle(SCREEN_WIDTH - PADDLE_WIDTH, (int)player2Y, PADDLE_WIDTH, PADDLE_HEIGHT, paddle2Color);
+    DrawRectangle((int)ballX, (int)ballY, BALL_SIZE, BALL_SIZE, ballColor);
+    // Draw explosion particles
+    for (int i = 0; i < particleCount; i++) {
+        DrawRectangle(particles[i].position.x, particles[i].position.y, 9, 9, Fade(particles[i].color, particles[i].lifespan));
+    }
+    if (trailEffectOn)
+    {
+        Vector2 ballPos = {ballX, ballY};
+        Vector2 ballVelocity = {ballSpeedX, ballSpeedY};
+        DrawSpeedTrail(ballPos, ballVelocity, trailColor); // Speed Trail
+    }
+    DrawRectangle((int)ballX, (int)ballY, BALL_SIZE, BALL_SIZE, ballColor);
 }

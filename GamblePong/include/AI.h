@@ -11,6 +11,8 @@ void AI_OffensivePlaystyle();
 void AI_TrickyPlaystyle();
 void AI_AdaptivePlaystyle();
 
-
+void MainMenuPlayer1AI();
+void MainMenuAIGame();
+void DrawAIGame();
 
 #endif // AI_H

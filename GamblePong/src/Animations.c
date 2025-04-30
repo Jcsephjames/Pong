@@ -59,6 +59,20 @@ void DrawExplosion(int x, int y, Color color) {
         }
     }
 }
+void UpdateExplosionParticles(){
+        // Update explosion particles
+    for (int i = 0; i < particleCount; i++) {
+        particles[i].lifespan -= GetFrameTime(); // Decrease lifespan over time
+        if (particles[i].lifespan <= 0) {
+            // Remove particle by shifting remaining particles
+            for (int j = i; j < particleCount - 1; j++) {
+                particles[j] = particles[j + 1];
+            }
+            particleCount--;
+            i--; // Adjust index to account for removed particle
+        }
+    }
+}
 
 //                                                                          - Double or nothing -
 // - Bounce Text -
