@@ -16,7 +16,7 @@ Gamble Pong is a customized version of the classic Pong game with additional fea
 - **C Compiler**: Ensure you have a C compiler installed (e.g., GCC).
 
 ### Run With
-gcc GamblePong.c src/SoundManager.c src/SettingsMenu.c src/AI.c src/Custom.c src/GameLogic.c src/Menu.c src/Animations.c src/Global.c -o game \
+gcc GamblePong.c src/SoundManager.c src/SettingsMenu.c src/AI.c src/Custom.c src/GameLogic.c src/Menu.c src/Animations.c src/Global.c src/Tutorial.c -o game \
 -Iinclude \
 -I/opt/homebrew/include \
 -L/opt/homebrew/lib \

@@ -46,7 +46,6 @@ int main(void)
     ResetBall();
 
     LoadSounds(&soundManager);
-
     // Main Game Loop
     while (!WindowShouldClose())
     {
@@ -63,7 +62,6 @@ int main(void)
             ResetMenu();
         }
         // Game States
-
         switch (gameState)
         {
         case 0:

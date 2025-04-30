@@ -705,7 +705,7 @@ void UpdateColorMadness(void) { // Timer and randomiser decides if colors should
     }
     // Randomly change colors of ball, paddles, background, obstacles, and portals
     // Use a timer to revert back to original colors
-    if (colorChangeBackTimer > 5.0f) {
+    if (colorChangeBackTimer > 4.0f) {
         RevertColors();
 
         colorChangeBackTimer = 0.0f; // Reset the timer to reset the timer
