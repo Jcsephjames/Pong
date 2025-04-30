@@ -98,6 +98,12 @@ extern float chaosSpeedIncrease;
 
 // Gravity Flip
 extern float GravityFlipTimer;
+extern float GravityFlipTime;
+extern float GravityFlipStartTime;
+extern float ColorFlipStartTime;
+extern float ColorFlipTime;
+extern float SpeedIncreaseStartTime;
+extern float SpeedIncreaseTime;
 // AI and Difficulty
 extern bool AIEnabled;
 extern float aiSpeed;

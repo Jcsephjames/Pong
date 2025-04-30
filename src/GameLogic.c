@@ -38,8 +38,13 @@ int numObstacles = 0;
 bool ObstacleMode = true;
 bool PortalMode = true;
 bool GravityFlip = true;
+float GravityFlipTime = 5.0f; 
 bool ColorFlip = true;
+float ColorFlipStartTime = 5.0f;
+float ColorFlipTime = 4.0f;
 bool SpeedIncrease = true;
+float SpeedIncreaseStartTime = 4.0f;
+float SpeedIncreaseTime = 4.0f;
 
 float GravityFlipTimer = 0.0f;
 
@@ -560,15 +565,39 @@ void DrawObstacles(void) {
     }
 }
 //                                                                                       - CHAOS MODE -
+void ResetChaosModes(void) {
+    numObstacles = 0;
+    portalAmount = 0;
+
+    RevertColors();
+
+    if (ballIsBoosted) {
+        ballSpeedX = originalBallSpeedX;
+        ballSpeedY = originalBallSpeedY;
+    }
+
+    ballIsBoosted = false;
+    boostAppliedThisCycle = false;
+
+    GravityFlipTimer = 0.0f;
+    colorChangeTimer = 0.0f;
+    colorChangeBackTimer = 0.0f;
+    chaosTimer = 0.0f;
+    chaosBoostTimer = 0.0f;
+    portalCooldown = 0.0f;
+}
 void UpdateChoasMde(void) {
     if (PortalMode) {
         UpdatePortals();
+        DrawPortals();
     }
     if (ObstacleMode) {
         UpdateObstacles();
+        DrawObstacles();
     }
     if (GravityFlip) {
         UpdateGravityFlip();
+        DrawGravityFlip();
     }
     if (ColorFlip) {
         UpdateColorMadness();
@@ -658,7 +687,7 @@ void InitGravityFlip(void) {
 }
 void UpdateGravityFlip(void) {
     GravityFlipTimer += GetFrameTime();
-    if (GravityFlipTimer > 5.0f) {
+    if (GravityFlipTimer > GravityFlipTime) {
         if (GetRandomValue(0, 100) < 25) {
             // Flip gravity
             ballSpeedY = -ballSpeedY;
@@ -690,7 +719,7 @@ void InitColorMadness(void) {
 void UpdateColorMadness(void) { // Timer and randomiser decides if colors should be changed
 //   Randomly change colors of ball, paddles, and background then start timer that changes them back again
     colorChangeTimer += GetFrameTime();
-    if (colorChangeTimer > 5.0f) {
+    if (colorChangeTimer > ColorFlipStartTime) {
         if (GetRandomValue(0, 100) < 50) {
         bgColor        = GetRandomColor();
         ballColor      = GetRandomColor();
@@ -705,7 +734,7 @@ void UpdateColorMadness(void) { // Timer and randomiser decides if colors should
     }
     // Randomly change colors of ball, paddles, background, obstacles, and portals
     // Use a timer to revert back to original colors
-    if (colorChangeBackTimer > 4.0f) {
+    if (colorChangeBackTimer > ColorFlipTime) {
         RevertColors();
 
         colorChangeBackTimer = 0.0f; // Reset the timer to reset the timer
@@ -732,7 +761,7 @@ void UpdateBallSpeedChaos(void) {
     chaosTimer += GetFrameTime();
 
     // Wait 5 seconds
-    if (!ballIsBoosted && !boostAppliedThisCycle && chaosTimer > 5.0f) {
+    if (!ballIsBoosted && !boostAppliedThisCycle && chaosTimer > SpeedIncreaseStartTime) {
         if (GetRandomValue(0, 100) < 50) {
             originalBallSpeedX = ballSpeedX;
             originalBallSpeedY = ballSpeedY;
@@ -751,7 +780,7 @@ void UpdateBallSpeedChaos(void) {
     // If boosted, count 3 seconds then revert
     if (ballIsBoosted) {
         chaosBoostTimer += GetFrameTime();
-        if (chaosBoostTimer > 3.0f) {
+        if (chaosBoostTimer > SpeedIncreaseTime) {
             ballSpeedX = originalBallSpeedX;
             ballSpeedY = originalBallSpeedY;
             ballIsBoosted = false;

@@ -51,5 +51,6 @@ void InitBallSpeedChaos(void);
 void UpdateBallSpeedChaos(void);
 void InitChaosMode(void);
 void UpdateChoasMde(void);
+void ResetChaosModes(void);
 
 #endif // GAMELOGIC_H

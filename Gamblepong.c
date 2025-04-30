@@ -34,6 +34,12 @@ void InitGame() {
 
     paddle1Color = playerOne;
     paddle2Color = playerTwo;
+
+    bool ObstacleMode = true;
+    bool PortalMode = true;
+    bool GravityFlip = true;
+    bool ColorFlip = true;
+    bool SpeedIncrease = true;
 }
 
 int main(void)
@@ -56,9 +62,12 @@ int main(void)
         // Pause Game Controlls
         if (paused && IsKeyPressed(KEY_M))
         {
+            if(gameState == 10){
+                RevertColors();
+                ResetChaosModes();
+            }
             gameState = 0;
             paused = false;
-            RevertColors();
             ResetMenu();
         }
         // Game States
@@ -128,10 +137,6 @@ int main(void)
                 UpdateChoasMde();
             }
             DrawGameScreen();
-            DrawPortals();
-            DrawObstacles();
-            DrawGravityFlip();
-
             break;
         case 11:
             if (!paused)
