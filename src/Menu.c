@@ -225,23 +225,29 @@ void DrawControlsScreen(void)
 //                                                                                        -- Credits Screen --
 void Credits(void)
 {
-    BeginDrawing();
-    ClearBackground(bgColor);
+        BeginDrawing();
+        ClearBackground(bgColor);
+    
+        DrawText("CREDITS", SCREEN_WIDTH / 2 - MeasureText("CREDITS", 50) / 2, 60, 50, textColor);
+    
 
-    DrawText("CREDITS", SCREEN_WIDTH / 2 - MeasureText("CREDITS", 50) / 2, 50, 50, textColor);
-
-
-    DrawText("Press M to return to Main Menu", SCREEN_WIDTH / 2 - MeasureText("Press M to return to Main Menu", 20) / 2, 575, 20, textColor);
-    if (IsKeyPressed(KEY_M)){ // Returns to Main Menu
-        if (sfxOn)
-            PlaySound(soundManager.leaveMenu);
-        gameState = 0;
-    }
-    if (showFPS) {
-        DrawFPS(10, 20);
-    }
-    EndDrawing();
+        DrawText("Created, Designed and Coded By", SCREEN_WIDTH / 2 - MeasureText("Created, Designed and Coded By", 30) / 2, 140, 30, textColor);
+        DrawText("Joseph Moore", SCREEN_WIDTH / 2 - MeasureText("Joseph Moore", 30) / 2, 180, 30, textColor);
+    
+        // Special Thanks
+        DrawText("Special Thanks To:", SCREEN_WIDTH / 2 - MeasureText("Special Thanks To:", 25) / 2, 240, 25, textColor);
+        DrawText("- The Raylib Community", SCREEN_WIDTH / 2 - 200, 300, 25, textColor);
+        DrawText("- Anyone who tested or gave feedback", SCREEN_WIDTH / 2 - 200, 330, 25, textColor);
+    
+        // Return hint
+        DrawText("Press M to return", SCREEN_WIDTH / 2 - MeasureText("Press M to return", 20) / 2, SCREEN_HEIGHT - 50, 20, textColor);
+    
+        if (showFPS) {
+            DrawFPS(10, 20);
+        }
+        EndDrawing();
 }
+
 //                                                                                                   -- Modes Menu --
 void DrawModesMenu(void)
 {

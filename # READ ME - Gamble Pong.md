@@ -1,22 +1,23 @@
 # READ ME - Gamble Pong
 ## Overview
-Gamble Pong is a customized version of the classic Pong game with additional features and modes, including a QuickPlay, Set-upPlay, Obstacle Mode and a Chaos Mode. Players can customize colors, themes, and visual effects to enhance their gameplay experience.
+Gamble Pong is an upadated version of the classic game Pong, with different modes such as, Set-up, Obstacle and Chaos Mode. Players can indulge in all the different customizable options to enhance their player experience
 
 ## Features
 - Multiple game modes: Quick Play, Set-up Play, Obstacle Mode and Chaos Mode
+- Including a working Tutorial to guide new players
 - AI with adjustable difficulty levels
 - Customizable colors and themes
-- Visual effects: explosion, trail, animated backgrounds (coming soon)
+- Visual effects: explosions, trails and menu animations
 - Settings menu for various game options
 
 ## Setup and Installation
 
 ### Dependencies
 - **raylib**: A simple and easy-to-use library to enjoy videogames programming.
-- **C Compiler**: Ensure you have a C compiler installed (e.g., GCC).
+- **C Compiler**: Ensure you have a C compiler installed. The example 'Run With' I am using is using GCC
 
 ### Run With
-gcc GamblePong.c src/SoundManager.c src/SettingsMenu.c src/AI.c src/Custom.c src/GameLogic.c src/Menu.c src/Animations.c src/Global.c src/Tutorial.c -o game \
+gcc GamblePong.c src/*.c -o game \
 -Iinclude \
 -I/opt/homebrew/include \
 -L/opt/homebrew/lib \
@@ -38,12 +39,17 @@ Then,
 
 3. **Compile the game**:
     ```sh
-    gcc -o gamblepong gamblepong.c -lraylib
+    gcc GamblePong.c src/*.c -o game \
+  -Iinclude \
+  -I/opt/homebrew/include \
+  -L/opt/homebrew/lib \
+  -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio \
+  -lraylib -lm
     ```
 
 4. **Run the game**:
     ```sh
-    ./gamblepong
+    ./game
     ```
 
 ## How to Play
@@ -56,6 +62,7 @@ Then,
   - `Up Arrow`: Move paddle up
   - `Down Arrow`: Move paddle down
 - **General Controls**:
+  - `T`: To Enter the Tutorial
   - `P`: Pause the game
   - `M`: Return to main menu
   - `R`: Restart the game
@@ -65,14 +72,11 @@ Then,
   - `H`: Toggle AI
 
 ### Game Modes
+- **Tutorial**: A way to teach new players the basics.
 - **Quick Play**: Faster-paced version of the game.
 - **SetUp Play**: A fully customizable game of Pong.
 - **Obstacle Mode**: Introduces obstacles on the field.
 - **Chaos Mode**: Under Construction.
-
-
-### Customization
-- Access the customization menu to change colors for paddles, ball, background, text, and effects. Predefined themes are also available.
 
 ## Credits
 Developed by Joseph.
